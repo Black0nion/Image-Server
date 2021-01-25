@@ -16,21 +16,19 @@ public class UploadImage {
 	
 	private static Random random;
 	
+	/**
+	 * Handles all <b>upload</b> requests
+	 */
 	public static void init() {
 		post("upload", "multipart/form-data", (request, response) -> {
-			String location = "images";          // the directory location where files will be stored
-			long maxFileSize = 100000000;       // the maximum size allowed for uploaded files
-			long maxRequestSize = 100000000;    // the maximum size allowed for multipart/form-data requests
-			int fileSizeThreshold = 1024;       // the size threshold after which files will be written to disk
-
 			try {
 				MultipartConfigElement multipartConfigElement = new MultipartConfigElement(
-					     location, maxFileSize, maxRequestSize, fileSizeThreshold);
+					     ImageServer.IMAGES_FOLDER, ImageServer.MAX_FILE_SIZE, ImageServer.MAX_REQUEST_SIZE, ImageServer.FILE_SIZE_THRESHOLD);
 					 request.raw().setAttribute("org.eclipse.jetty.multipartConfig",
 					     multipartConfigElement);
 
-				Part uploadedFile = request.raw().getPart("image");
-				Path out = Paths.get("images/" + getRandomFileName() + "." + uploadedFile.getContentType().split("/")[1]);
+				Part uploadedFile = request.raw().getPart(ImageServer.KEY);
+				Path out = Paths.get(ImageServer.IMAGES_FOLDER + "/" + getRandomFileName(ImageServer.FILE_NAME_LENGTH) + "." + uploadedFile.getContentType().split("/")[1]);
 				
 				// buffer
 				byte[] buffer = new byte[uploadedFile.getInputStream().available()];
@@ -49,7 +47,7 @@ public class UploadImage {
 				multipartConfigElement = null;
 				uploadedFile = null;
 				outStream.close();
-				return "http://localhost:1011/image/" + out.toFile().getName();
+				return ImageServer.PROTOCOL  + "://" + ImageServer.LOCAL_IP + ":" + ImageServer.PORT + "/" + ImageServer.IMAGES_FOLDER + "/" + out.toFile().getName();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -58,16 +56,19 @@ public class UploadImage {
 		});
 	}
 	
-	public static String getRandomFileName() {
-		int leftLimit = 97; // letter 'a'
-	    int rightLimit = 122; // letter 'z'
+	public static String getRandomFileName(final int length) {
+		int leftLimit1 = 65; // letter 'A'
+		int rightLimit1 = 90; // letter 'B'
+		int leftLimit2 = 97; // letter 'a'
+	    int rightLimit2 = 122; // letter 'z'
 	    
-	    int targetStringLength = 20;
+	    int targetStringLength = length;
 	    if (random == null)
 	    	random = new Random();
 
-	    String generatedString = random.ints(leftLimit, rightLimit + 1)
+	    String generatedString = random.ints(leftLimit1, rightLimit2 + 1)
 	      .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+	      .filter(i -> (i <= rightLimit1 || i >= leftLimit2))
 	      .limit(targetStringLength + 2)
 	      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
 	      .toString();
