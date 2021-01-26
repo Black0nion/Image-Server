@@ -21,6 +21,12 @@ public class UploadImage {
 	 */
 	public static void init() {
 		post("upload", "multipart/form-data", (request, response) -> {
+			if (ImageServer.AUTHENTICATION_ENABLED) {
+				if (!Credentials.allowed(request.headers("token"))) {
+					response.status(401);
+					return "401 UNAUTHORIZED";
+				}
+			}
 			try {
 				MultipartConfigElement multipartConfigElement = new MultipartConfigElement(
 					     ImageServer.IMAGES_FOLDER, ImageServer.MAX_FILE_SIZE, ImageServer.MAX_REQUEST_SIZE, ImageServer.FILE_SIZE_THRESHOLD);
@@ -33,8 +39,8 @@ public class UploadImage {
 				
 				// buffer
 				byte[] buffer = new byte[uploadedFile.getInputStream().available()];
+				
 				// read file
-
 				uploadedFile.getInputStream().read(buffer);
 				// make a file for the target
 			    File targetFile = out.toFile();
@@ -72,9 +78,9 @@ public class UploadImage {
 	      .filter(i -> (i <= rightLimit1 || i >= leftLimit2))
 	      .limit(targetStringLength + 2)
 	      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-	      .toString() + ending;
+	      .toString();
 	    
-	    if (ImageServer.usedNames.contains(generatedString))
+	    if (ImageServer.usedNames.contains(generatedString + ending))
 	    	return getRandomFileName(targetStringLength, ending);
 	    
 	    return generatedString;

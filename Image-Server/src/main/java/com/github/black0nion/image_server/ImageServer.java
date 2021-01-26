@@ -47,15 +47,26 @@ public class ImageServer {
 	/**
 	 * The size threshold after which files will be written to disk
 	 */
-	public static final int FILE_SIZE_THRESHOLD = 1024; 
+	public static final int FILE_SIZE_THRESHOLD = 1024;
 	
 	/**
 	 * Used to store all names which are already in use
 	 */
 	public static final ArrayList<String> usedNames = new ArrayList<>();
+
+	/**
+	 * The File the Credentials of the Users are configured in
+	 */
+	public static final File CREDENTIALS_FILE = new File("credentials.json");
+	
+	/**
+	 * Stores whether the users have to authenticate with credentials or not
+	 */
+	public static final boolean AUTHENTICATION_ENABLED = true;
 	
 	public static void main(String[] args) {
 		usedNames.addAll(Arrays.asList(new File(IMAGES_FOLDER).list()));
+		Credentials.refresh();
 		Spark.port(PORT);
 		UploadImage.init();
 		GetImage.init();
