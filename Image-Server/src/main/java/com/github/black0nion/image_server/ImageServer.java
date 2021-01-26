@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import spark.Filter;
+import spark.Request;
+import spark.Response;
 import spark.Spark;
 
 public class ImageServer {
@@ -70,5 +73,12 @@ public class ImageServer {
 		Spark.port(PORT);
 		UploadImage.init();
 		GetImage.init();
+		
+		Spark.before(new Filter() {
+			@Override
+			public void handle(Request request, Response response) throws Exception {
+				System.out.println("New Request from IP " + request.ip() + " to URL " + request.pathInfo() + (AUTHENTICATION_ENABLED ? (request.headers("token") != null ? " with token " + request.headers("token") : " with no token!") : ""));
+			}
+		});
 	}
 }
