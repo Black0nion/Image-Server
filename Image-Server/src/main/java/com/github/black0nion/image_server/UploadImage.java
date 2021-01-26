@@ -28,7 +28,8 @@ public class UploadImage {
 					     multipartConfigElement);
 
 				Part uploadedFile = request.raw().getPart(ImageServer.KEY);
-				Path out = Paths.get(ImageServer.IMAGES_FOLDER + "/" + getRandomFileName(ImageServer.FILE_NAME_LENGTH) + "." + uploadedFile.getContentType().split("/")[1]);
+				final String ending = uploadedFile.getContentType().split("/")[1];
+				Path out = Paths.get(ImageServer.IMAGES_FOLDER + "/" + getRandomFileName(ImageServer.FILE_NAME_LENGTH, ending) + "." + ending);
 				
 				// buffer
 				byte[] buffer = new byte[uploadedFile.getInputStream().available()];
@@ -56,7 +57,7 @@ public class UploadImage {
 		});
 	}
 	
-	public static String getRandomFileName(final int length) {
+	public static String getRandomFileName(final int length, final String ending) {
 		int leftLimit1 = 65; // letter 'A'
 		int rightLimit1 = 90; // letter 'B'
 		int leftLimit2 = 97; // letter 'a'
@@ -71,8 +72,11 @@ public class UploadImage {
 	      .filter(i -> (i <= rightLimit1 || i >= leftLimit2))
 	      .limit(targetStringLength + 2)
 	      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-	      .toString();
-
+	      .toString() + ending;
+	    
+	    if (ImageServer.usedNames.contains(generatedString))
+	    	return getRandomFileName(targetStringLength, ending);
+	    
 	    return generatedString;
 	}
 }

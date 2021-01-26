@@ -12,9 +12,9 @@ public class GetImage {
 	 * Handles all <b>get a picture</b> requests
 	 */
 	public static void init() {
-		get("/image/:key", (request, response) -> {
+		get("/images/:key", (request, response) -> {
 			try {
-	            File file = new File("images/" + request.params("key"));
+	            File file = new File(ImageServer.IMAGES_FOLDER + "/" + request.params("key"));
 	            if (!file.exists()) {
 	            	response.status(404);
 	            	return "404 NOT FOUND";
@@ -26,7 +26,7 @@ public class GetImage {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			return null;
+			return "500 INTERNAL SERVER ERROR";
 		});
 	}
 }

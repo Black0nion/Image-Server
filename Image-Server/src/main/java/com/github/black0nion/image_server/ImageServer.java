@@ -1,5 +1,9 @@
 package com.github.black0nion.image_server;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import spark.Spark;
 
 public class ImageServer {
@@ -12,7 +16,7 @@ public class ImageServer {
 	/**
 	 * The folder the images should be saved in
 	 */
-	public static final String IMAGES_FOLDER = "image";
+	public static final String IMAGES_FOLDER = "images";
 	/**
 	 * The length of the random file name (the more pictures you want to save, the longer)
 	 */
@@ -45,7 +49,13 @@ public class ImageServer {
 	 */
 	public static final int FILE_SIZE_THRESHOLD = 1024; 
 	
+	/**
+	 * Used to store all names which are already in use
+	 */
+	public static final ArrayList<String> usedNames = new ArrayList<>();
+	
 	public static void main(String[] args) {
+		usedNames.addAll(Arrays.asList(new File(IMAGES_FOLDER).list()));
 		Spark.port(PORT);
 		UploadImage.init();
 		GetImage.init();
