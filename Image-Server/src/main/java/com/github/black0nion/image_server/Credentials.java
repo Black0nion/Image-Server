@@ -2,6 +2,7 @@ package com.github.black0nion.image_server;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -30,5 +31,15 @@ public class Credentials {
 	
 	public static boolean allowed(String key) {
 		return keys.containsValue(key);
+	}
+	
+	public static String getUserName(String key) {
+		if (!allowed(key))
+			return "isn't a user!";
+		for (Map.Entry<String, String> entry : keys.entrySet()) {
+			if (entry.getValue().equals(key))
+				return entry.getKey();
+		}
+		return "NONE";
 	}
 }

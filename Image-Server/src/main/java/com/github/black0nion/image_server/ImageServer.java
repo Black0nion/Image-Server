@@ -77,7 +77,7 @@ public class ImageServer {
 		Spark.before(new Filter() {
 			@Override
 			public void handle(Request request, Response response) throws Exception {
-				System.out.println("New Request from IP " + request.ip() + " to URL " + request.pathInfo() + (AUTHENTICATION_ENABLED ? (request.headers("token") != null ? " with token " + request.headers("token") : " with no token!") : ""));
+				System.out.println("New Request from IP " + request.ip() + " to URL " + request.pathInfo() + (AUTHENTICATION_ENABLED ? (request.headers("token") != null ? " with token " + request.headers("token") + " (User " + Credentials.getUserName(request.headers("token")) + ")" : " with no token!") : ""));
 			}
 		});
 	}
