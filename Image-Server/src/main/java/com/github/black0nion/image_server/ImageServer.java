@@ -85,7 +85,8 @@ public class ImageServer {
 	private static final int DEFAULT_SIZE = 10;
 	
 	public static void main(String[] ignoredArgs) {
-		usedNames.addAll(Arrays.asList(new File(IMAGES_FOLDER).list()));
+		IMAGES_FOLDER_FILE.mkdirs();
+		usedNames.addAll(Arrays.asList(IMAGES_FOLDER_FILE.list()));
 		Credentials.refresh();
 		Spark.port(PORT);
 		UploadImage.init();
@@ -94,7 +95,7 @@ public class ImageServer {
 		Spark.before(new Filter() {
 			@Override
 			public void handle(Request request, Response response) throws Exception {
-				System.out.println("New Request from IP " + request.ip() + " to URL " + request.pathInfo() + (AUTHENTICATION_ENABLED ? (request.headers("token") != null ? " with token " + request.headers("token") + " (User " + Credentials.getUserName(request.headers("token")) + ")" : " with no token!") : ""));
+				System.out.println("New Request from IP " + (request.headers("X-Real-IP") != null ? request.headers("X-Real-IP") : request.ip()) + " to URL " + request.pathInfo() + (AUTHENTICATION_ENABLED ? (request.headers("token") != null ? " with token " + request.headers("token") + " (User " + Credentials.getUserName(request.headers("token")) + ")" : " with no token!") : ""));
 			}
 		});
 		
