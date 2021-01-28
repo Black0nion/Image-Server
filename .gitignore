@@ -52,3 +52,4 @@ gradle-app.setting
 
 images
 Image-Server/credentials.json
+Image-Server/config.json

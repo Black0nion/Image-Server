@@ -18,56 +18,60 @@ import spark.Request;
 import spark.Response;
 import spark.Spark;
 
+/**
+ * @author _SIM_
+ *
+ */
 public class ImageServer {
 	
 	/**
 	 * The Port the server should listen to
 	 */
-	public static final int PORT = 1011;
+	public static int PORT;
 	
 	/**
 	 * The folder the images should be saved in
 	 */
-	public static final String IMAGES_FOLDER = "images";
+	public static String IMAGES_FOLDER;
 	
-	private static final File IMAGES_FOLDER_FILE = new File(IMAGES_FOLDER);
+	private static File IMAGES_FOLDER_FILE;
 	
 	/**
 	 * The length of the random file name (the more pictures you want to save, the longer)
 	 */
-	public static final int FILE_NAME_LENGTH = 20;
+	public static int FILE_NAME_LENGTH;
 	
 	/**
 	 * The Key the image should be saved as a file in the body (content-type: <b>multipart/form-data</b>)
 	 */
-	public static final String KEY = "image";
+	public static String KEY;
 	
 	/**
 	 * Used only for returning the link, set it to your public IP / your domain
 	 * @see UploadImage
 	 */
-	public static final String PROTOCOL = "http";
-	public static final String LOCAL_IP = "localhost";
+	public static String PROTOCOL;
+	public static String LOCAL_IP;
 	
 	/**
 	 * The maximum size allowed for uploaded files
 	 */
-	public static final long MAX_FILE_SIZE = 100000000;
+	public static long MAX_FILE_SIZE;
 	
 	/**
 	 * The maximum size allowed for multipart/form-data requests
 	 */
-	public static final long MAX_REQUEST_SIZE = 100000000;
+	public static long MAX_REQUEST_SIZE;
 	
 	/**
 	 * The size threshold after which files will be written to disk
 	 */
-	public static final int FILE_SIZE_THRESHOLD = 1024;
+	public static int FILE_SIZE_THRESHOLD;
 	
 	/**
 	 * Used to store all names which are already in use
 	 */
-	public static final ArrayList<String> usedNames = new ArrayList<>();
+	public static ArrayList<String> usedNames = new ArrayList<>();
 
 	/**
 	 * The File the Credentials of the Users are configured in
@@ -77,14 +81,31 @@ public class ImageServer {
 	/**
 	 * Stores whether the users have to authenticate with credentials or not
 	 */
-	public static final boolean AUTHENTICATION_ENABLED = true;
+	public static boolean AUTHENTICATION_ENABLED;
 	
 	/**
 	 * The default size of the sizetop command
 	 */
-	private static final int DEFAULT_SIZE = 10;
+	private static int DEFAULT_SIZE;
+	
+	private static void init() {
+		PORT = Config.getOrDefault("port", 1011);
+		IMAGES_FOLDER = Config.getOrDefault("images_folder", "images");
+		IMAGES_FOLDER_FILE = new File(IMAGES_FOLDER);
+		FILE_NAME_LENGTH = Config.getOrDefault("file_name_length", 20);
+		KEY = Config.getOrDefault("key", "image");
+		PROTOCOL = Config.getOrDefault("protocol", "http");
+		LOCAL_IP = Config.getOrDefault("local_ip", "localhost");
+		MAX_FILE_SIZE = Config.getOrDefault("max_file_size", 100000000);
+		MAX_REQUEST_SIZE = Config.getOrDefault("max_request_size", 100000000);
+		FILE_SIZE_THRESHOLD = Config.getOrDefault("file_size_threshold", 1024);
+		AUTHENTICATION_ENABLED = Config.getOrDefault("authentication_enabled", false);
+		DEFAULT_SIZE = Config.getOrDefault("default_size", 10);
+	}
 	
 	public static void main(String[] ignoredArgs) {
+		Config.reload();
+		init();
 		IMAGES_FOLDER_FILE.mkdirs();
 		usedNames.addAll(Arrays.asList(IMAGES_FOLDER_FILE.list()));
 		Credentials.refresh();
@@ -97,6 +118,11 @@ public class ImageServer {
 			public void handle(Request request, Response response) throws Exception {
 				System.out.println("New Request from IP " + (request.headers("X-Real-IP") != null ? request.headers("X-Real-IP") : request.ip()) + " to URL " + request.pathInfo() + (AUTHENTICATION_ENABLED ? (request.headers("token") != null ? " with token " + request.headers("token") + " (User " + Credentials.getUserName(request.headers("token")) + ")" : " with no token!") : ""));
 			}
+		});
+		
+		Spark.notFound((request, response) -> {
+			response.type("text/html;charset=utf-8");
+			return "<html><head><title>404 Not Found</title></head><body><h2>404 Not found</h2></body></html>";
 		});
 		
 		@SuppressWarnings("resource")
@@ -150,6 +176,10 @@ public class ImageServer {
 					e.printStackTrace();
 					System.out.println("Something went wrong!");
 				}
+			} else if (args[0].equalsIgnoreCase("reload") || args[0].equalsIgnoreCase("rl")) {
+				Config.reload();
+				System.out.println("Reloaded.");
+				System.out.println("NOTE: The server's port only changes when reloading!");
 			}
 		}
 	}

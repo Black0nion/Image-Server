@@ -1,6 +1,7 @@
 package com.github.black0nion.image_server;
 
 import static spark.Spark.post;
+import static spark.Spark.get;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,11 +21,23 @@ public class UploadImage {
 	 * Handles all <b>upload</b> requests
 	 */
 	public static void init() {
+		get("upload", (request, response) -> {
+			response.type("text/html;charset=utf-8");
+			return "<html><head><title>405 Method not allowed</title></head><body><h2>405 Method not allowed</h2></body></html>";
+		});
+		
+		post("upload", (request, response) -> {
+			response.status(400);
+			response.type("text/html;charset=utf-8");
+			return "<html><head><title>400 Bad Request</title></head><body><h2>400 Bad Request</h2></body></html>";
+		});
+		
 		post("upload", "multipart/form-data", (request, response) -> {
 			if (ImageServer.AUTHENTICATION_ENABLED) {
 				if (!Credentials.allowed(request.headers("token"))) {
 					response.status(401);
-					return "401 UNAUTHORIZED";
+					response.type("text/html;charset=utf-8");
+					return "<html><head><title>401 Unauthorized</title></head><body><h2>400 Unauthorized</h2></body></html>";
 				}
 			}
 			try {
@@ -58,8 +71,9 @@ public class UploadImage {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			response.status(400);
-			return "";
+			response.status(500);
+			response.type("text/html;charset=utf-8");
+			return "<html><head><title>500 Internal Server Error</title></head><body><h2>500 Internal Server Error</h2><p>Please report this to the admin of this site!</p></body></html>";
 		});
 	}
 	
