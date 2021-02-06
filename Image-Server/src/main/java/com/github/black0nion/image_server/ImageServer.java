@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -128,60 +129,62 @@ public class ImageServer {
 		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(System.in);
 		
-		while (true) {
-			sc.hasNext();
-			String line = sc.nextLine();
-			String[] args = line.split(" ");
-			if (args[0].equalsIgnoreCase("size")) {
-				System.out.println(getSize(false));
-			} else if (args[0].equalsIgnoreCase("list")) {
-				System.out.println(IMAGES_FOLDER_FILE.list().length != 0 ? String.join("\n", IMAGES_FOLDER_FILE.list()) : "No pictures.");
-			} else if (args[0].equalsIgnoreCase("stats")) {
-				System.out.println("Files uploaded: " + IMAGES_FOLDER_FILE.list().length);
-				System.out.println(getSize(false));
-				HashMap<String, Integer> stats = new HashMap<>();
-				for (File f : IMAGES_FOLDER_FILE.listFiles()) {
-					String ending = f.getName().split("\\.")[1];
-					stats.put(ending, stats.containsKey(ending) ? stats.get(ending) + 1 : 1);
-				}
-				stats.forEach((key, value) -> {
-					System.out.println(key + ": " + value);
-				});
-			} else if (args[0].equalsIgnoreCase("del") || args[0].equalsIgnoreCase("delete")) {
-				if (args.length < 2)
-					System.out.println("No argument given!");
-				else {
-					File fileToDelete = new File(IMAGES_FOLDER + "/" + args[1]);
-					if (fileToDelete.exists()) {
-						System.out.println("File " + fileToDelete.getName() + " deleted.");
-						fileToDelete.delete();
-					} else {
-						System.out.println("File " + fileToDelete.getName() + " doesn't exist!");
-					}
-				}
-			} else if (args[0].equalsIgnoreCase("sizetop")) {
-				try {
+		Executors.newCachedThreadPool().submit(() -> {
+			while (true) {
+				sc.hasNext();
+				String line = sc.nextLine();
+				String[] args = line.split(" ");
+				if (args[0].equalsIgnoreCase("size")) {
 					System.out.println(getSize(false));
-					List<Path> paths = Files.walk(Paths.get(IMAGES_FOLDER_FILE.toURI()))
-							  .filter(Files::isRegularFile)
-							  .sorted((Path a, Path b) -> a.toFile().length() < b.toFile().length() ? 1 : -1)
-							  .collect(Collectors.toList());
-					int length = DEFAULT_SIZE;
-					try { length = Integer.parseInt(args[1]); } catch (Exception ignored) {}
-					
-					for (int i = 1; i <= (length > paths.size() ? paths.size() : length); i++) {
-						System.out.println(paths.get(i - 1).getFileName() + ": " + getSizeString(paths.get(i - 1).toFile().length(), false));
+				} else if (args[0].equalsIgnoreCase("list")) {
+					System.out.println(IMAGES_FOLDER_FILE.list().length != 0 ? String.join("\n", IMAGES_FOLDER_FILE.list()) : "No pictures.");
+				} else if (args[0].equalsIgnoreCase("stats")) {
+					System.out.println("Files uploaded: " + IMAGES_FOLDER_FILE.list().length);
+					System.out.println(getSize(false));
+					HashMap<String, Integer> stats = new HashMap<>();
+					for (File f : IMAGES_FOLDER_FILE.listFiles()) {
+						String ending = f.getName().split("\\.")[1];
+						stats.put(ending, stats.containsKey(ending) ? stats.get(ending) + 1 : 1);
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					System.out.println("Something went wrong!");
+					stats.forEach((key, value) -> {
+						System.out.println(key + ": " + value);
+					});
+				} else if (args[0].equalsIgnoreCase("del") || args[0].equalsIgnoreCase("delete")) {
+					if (args.length < 2)
+						System.out.println("No argument given!");
+					else {
+						File fileToDelete = new File(IMAGES_FOLDER + "/" + args[1]);
+						if (fileToDelete.exists()) {
+							System.out.println("File " + fileToDelete.getName() + " deleted.");
+							fileToDelete.delete();
+						} else {
+							System.out.println("File " + fileToDelete.getName() + " doesn't exist!");
+						}
+					}
+				} else if (args[0].equalsIgnoreCase("sizetop")) {
+					try {
+						System.out.println(getSize(false));
+						List<Path> paths = Files.walk(Paths.get(IMAGES_FOLDER_FILE.toURI()))
+								  .filter(Files::isRegularFile)
+								  .sorted((Path a, Path b) -> a.toFile().length() < b.toFile().length() ? 1 : -1)
+								  .collect(Collectors.toList());
+						int length = DEFAULT_SIZE;
+						try { length = Integer.parseInt(args[1]); } catch (Exception ignored) {}
+						
+						for (int i = 1; i <= (length > paths.size() ? paths.size() : length); i++) {
+							System.out.println(paths.get(i - 1).getFileName() + ": " + getSizeString(paths.get(i - 1).toFile().length(), false));
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						System.out.println("Something went wrong!");
+					}
+				} else if (args[0].equalsIgnoreCase("reload") || args[0].equalsIgnoreCase("rl")) {
+					Config.reload();
+					System.out.println("Reloaded.");
+					System.out.println("NOTE: The server's port only changes when reloading!");
 				}
-			} else if (args[0].equalsIgnoreCase("reload") || args[0].equalsIgnoreCase("rl")) {
-				Config.reload();
-				System.out.println("Reloaded.");
-				System.out.println("NOTE: The server's port only changes when reloading!");
 			}
-		}
+		});
 	}
 	
 	private static String getSize(boolean nextLine) {

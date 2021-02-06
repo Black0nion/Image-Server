@@ -26,12 +26,6 @@ public class UploadImage {
 			return "<html><head><title>405 Method not allowed</title></head><body><h2>405 Method not allowed</h2></body></html>";
 		});
 		
-		post("upload", (request, response) -> {
-			response.status(400);
-			response.type("text/html;charset=utf-8");
-			return "<html><head><title>400 Bad Request</title></head><body><h2>400 Bad Request</h2></body></html>";
-		});
-		
 		post("upload", "multipart/form-data", (request, response) -> {
 			if (ImageServer.AUTHENTICATION_ENABLED) {
 				if (!Credentials.allowed(request.headers("token"))) {
@@ -47,7 +41,8 @@ public class UploadImage {
 					     multipartConfigElement);
 
 				Part uploadedFile = request.raw().getPart(ImageServer.KEY);
-				final String ending = uploadedFile.getContentType().split("/")[1];
+				String[] fileNameSplit = uploadedFile.getContentType().split("/");
+				final String ending = fileNameSplit[fileNameSplit.length - 1];
 				Path out = Paths.get(ImageServer.IMAGES_FOLDER + "/" + getRandomFileName(ImageServer.FILE_NAME_LENGTH, ending) + "." + ending);
 				
 				// buffer
@@ -74,6 +69,12 @@ public class UploadImage {
 			response.status(500);
 			response.type("text/html;charset=utf-8");
 			return "<html><head><title>500 Internal Server Error</title></head><body><h2>500 Internal Server Error</h2><p>Please report this to the admin of this site!</p></body></html>";
+		});
+		
+		post("upload", (request, response) -> {
+			response.status(400);
+			response.type("text/html;charset=utf-8");
+			return "<html><head><title>400 Bad Request</title></head><body><h2>400 Bad Request</h2></body></html>";
 		});
 	}
 	
