@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletException;
 import javax.servlet.http.Part;
 
 public class UploadImage {
@@ -62,19 +63,18 @@ public class UploadImage {
 				multipartConfigElement = null;
 				uploadedFile = null;
 				outStream.close();
-				return ImageServer.PROTOCOL  + "://" + ImageServer.LOCAL_IP + ":" + ImageServer.PORT + "/" + ImageServer.IMAGES_FOLDER + "/" + out.toFile().getName();
+				return ImageServer.BASEURL + "/" + ImageServer.IMAGES_FOLDER + "/" + out.toFile().getName();
 			} catch (Exception e) {
+				if (e instanceof ServletException) {
+					response.status(400);
+					response.type("text/html;charset=utf-8");
+					return "<html><head><title>400 Bad Request</title></head><body><h2>400 Bad Request</h2></body></html>";
+				}
 				e.printStackTrace();
 			}
 			response.status(500);
 			response.type("text/html;charset=utf-8");
 			return "<html><head><title>500 Internal Server Error</title></head><body><h2>500 Internal Server Error</h2><p>Please report this to the admin of this site!</p></body></html>";
-		});
-		
-		post("upload", (request, response) -> {
-			response.status(400);
-			response.type("text/html;charset=utf-8");
-			return "<html><head><title>400 Bad Request</title></head><body><h2>400 Bad Request</h2></body></html>";
 		});
 	}
 	

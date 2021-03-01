@@ -53,6 +53,12 @@ public class Config {
 		return defaultValue;
 	}
 	
+	public static int get(String key) {
+		if (config.has(key))
+			return config.getInt(key);
+		return -1;
+	}
+	
 	public static void save(String key, Object value) {
 		config.put(key, value);
 		save();

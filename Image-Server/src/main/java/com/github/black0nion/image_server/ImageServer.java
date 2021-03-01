@@ -48,11 +48,12 @@ public class ImageServer {
 	public static String KEY;
 	
 	/**
-	 * Used only for returning the link, set it to your public IP / your domain
-	 * @see UploadImage
+	 * The url your server will be publicly accessible on.<br>
+	 * The image URL will get added.<br>
+	 * Example variable value: https://image.example.com<br>
+	 * Result: <b>https://image.example.com</b>/images/:name
 	 */
-	public static String PROTOCOL;
-	public static String LOCAL_IP;
+	public static String BASEURL;
 	
 	/**
 	 * The maximum size allowed for uploaded files
@@ -95,8 +96,11 @@ public class ImageServer {
 		IMAGES_FOLDER_FILE = new File(IMAGES_FOLDER);
 		FILE_NAME_LENGTH = Config.getOrDefault("file_name_length", 20);
 		KEY = Config.getOrDefault("key", "image");
-		PROTOCOL = Config.getOrDefault("protocol", "http");
-		LOCAL_IP = Config.getOrDefault("local_ip", "localhost");
+		BASEURL = Config.getOrDefault("baseurl", "http://localhost:" + PORT);
+		if (BASEURL.endsWith("/")) {
+			BASEURL = BASEURL.substring(0, BASEURL.length()-1);
+			Config.save("baseurl", BASEURL);
+		}
 		MAX_FILE_SIZE = Config.getOrDefault("max_file_size", 100000000);
 		MAX_REQUEST_SIZE = Config.getOrDefault("max_request_size", 100000000);
 		FILE_SIZE_THRESHOLD = Config.getOrDefault("file_size_threshold", 1024);
